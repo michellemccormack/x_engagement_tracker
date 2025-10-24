@@ -1,0 +1,10 @@
+# Core dependencies
+fastapi
+uvicorn
+playwright
+pandas
+python-dotenv
+openai
+gspread
+oauth2client
+
