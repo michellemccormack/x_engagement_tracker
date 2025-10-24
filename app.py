@@ -25,14 +25,13 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Initialize Apify scraper
+scraper = None
 try:
     scraper = ApifyTwitterScraper()
     print("Apify scraper initialized successfully")
-except ValueError as e:
-    print(f"Warning: {e}")
-    scraper = None
 except Exception as e:
-    print(f"Error initializing Apify scraper: {e}")
+    print(f"Warning: Apify scraper failed to initialize: {e}")
+    print("App will continue without Apify functionality")
     scraper = None
 
 @app.post("/api/compare-engagement")
@@ -124,6 +123,10 @@ async def compare_get(handles: str):
 @app.get("/")
 def home():
     return FileResponse("static/index.html")
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "message": "X Engagement Tracker is running"}
 
 @app.get("/api")
 def api_info():
