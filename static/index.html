@@ -30,6 +30,18 @@
             padding: 40px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             border: 1px solid #333;
+            margin-bottom: 30px;
+        }
+        
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
         }
         
         .header {
@@ -155,7 +167,7 @@
         
         .results {
             display: none;
-            padding: 40px 0;
+            padding: 0;
             background: transparent;
         }
         
@@ -241,21 +253,21 @@
         
         .result-card h3 {
             color: #ffffff;
-            margin-bottom: 12px;
-            font-size: 1rem;
-            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
         
         .metric {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            padding: 4px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .metric:last-child {
@@ -264,22 +276,22 @@
         
         .metric-label {
             font-weight: 500;
-            color: #b0b0b0;
-            font-size: 0.8rem;
+            color: #cccccc;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
         
         .metric-value {
-            font-weight: 600;
+            font-weight: 700;
             color: #ffffff;
-            font-size: 0.85rem;
+            font-size: 1rem;
         }
         
         .engagement-rate {
-            font-size: 1rem;
-            font-weight: 700;
+            font-size: 1.2rem;
+            font-weight: 800;
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -430,20 +442,20 @@
                 <small>This may take 30-60 seconds</small>
             </div>
         </div>
-        
-        <div class="results" id="results">
-            <div class="demo-note" id="demoNote" style="display: none;">
-                📝 Demo data - Apify free plan returns placeholder data
-            </div>
-            
-            <div class="winner-card" id="winnerCard" style="display: none;">
-                <h2>🏆 Winner: <span id="winnerHandle"></span></h2>
-                <div class="engagement-rate" id="winnerRate"></div>
-                <p style="color: #a0a0a0; margin-top: 15px; font-size: 1.1rem;">Highest Engagement Rate</p>
-            </div>
-            
-            <div class="results-grid" id="resultsGrid"></div>
+    </div>
+    
+    <div class="results-container" id="results">
+        <div class="demo-note" id="demoNote" style="display: none;">
+            📝 Demo data - Apify free plan returns placeholder data
         </div>
+        
+        <div class="winner-card" id="winnerCard" style="display: none;">
+            <h2>🏆 Winner: <span id="winnerHandle"></span></h2>
+            <div class="engagement-rate" id="winnerRate"></div>
+            <p style="color: #a0a0a0; margin-top: 15px; font-size: 1.1rem;">Highest Engagement Rate</p>
+        </div>
+        
+        <div class="results-grid" id="resultsGrid"></div>
     </div>
 
     <script>
