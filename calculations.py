@@ -10,6 +10,40 @@ from datetime import datetime, timedelta
 import statistics
 import math
 
+def compute_comparison(results: list):
+    """
+    Compute comparison between multiple handle results.
+    
+    Args:
+        results: List of engagement data for different handles
+        
+    Returns:
+        Dictionary containing comparison analysis
+    """
+    if not results:
+        return {"error": "No results to compare"}
+    
+    # Calculate total engagement for each handle
+    handle_scores = {}
+    for result in results:
+        handle = result.get('handle', 'unknown')
+        total_engagement = result.get('total_engagement', 0)
+        handle_scores[handle] = total_engagement
+    
+    # Find the best performing handle
+    best_handle = max(handle_scores.items(), key=lambda x: x[1])
+    
+    # Calculate average engagement
+    avg_engagement = sum(handle_scores.values()) / len(handle_scores)
+    
+    return {
+        'best_performing_handle': best_handle[0],
+        'best_score': best_handle[1],
+        'average_engagement': avg_engagement,
+        'handle_rankings': sorted(handle_scores.items(), key=lambda x: x[1], reverse=True),
+        'total_handles_compared': len(results)
+    }
+
 class EngagementCalculator:
     """Calculator for X engagement metrics and comparisons."""
     

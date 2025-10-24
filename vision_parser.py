@@ -12,6 +12,47 @@ from datetime import datetime
 import asyncio
 import aiohttp
 
+async def extract_engagements(handle: str, screenshots: list):
+    """
+    Extract engagement metrics from screenshots for a specific handle.
+    
+    Args:
+        handle: X username
+        screenshots: List of screenshot paths
+        
+    Returns:
+        Dictionary containing engagement data for the handle
+    """
+    try:
+        # Process each screenshot and extract engagement data
+        engagement_data = []
+        for screenshot in screenshots:
+            # Mock engagement data for now
+            engagement_data.append({
+                'likes': '1.2K',
+                'retweets': '234',
+                'replies': '89',
+                'bookmarks': '45',
+                'views': '5.6K'
+            })
+        
+        # Calculate total engagement (simplified)
+        total_engagement = len(engagement_data) * 1200  # Mock calculation
+        
+        return {
+            'handle': handle,
+            'engagement_data': engagement_data,
+            'total_engagement': total_engagement
+        }
+    except Exception as e:
+        print(f"Error extracting engagements for {handle}: {str(e)}")
+        return {
+            'handle': handle,
+            'error': str(e),
+            'engagement_data': [],
+            'total_engagement': 0
+        }
+
 class VisionParser:
     """Parser for extracting engagement metrics using GPT-4o Vision."""
     

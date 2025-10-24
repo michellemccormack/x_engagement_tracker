@@ -11,6 +11,24 @@ import time
 import json
 from datetime import datetime
 
+async def scrape_tweets(handle: str):
+    """
+    Scrape tweets for a specific X handle.
+    
+    Args:
+        handle: X username to scrape
+        
+    Returns:
+        List of screenshot paths for the tweets
+    """
+    try:
+        # For now, return mock screenshot paths
+        # In a real implementation, this would use Playwright to scrape actual tweets
+        return [f"/tmp/{handle}_tweet_1.png", f"/tmp/{handle}_tweet_2.png"]
+    except Exception as e:
+        print(f"Error scraping tweets for {handle}: {str(e)}")
+        return []
+
 class XScraper:
     """Scraper for X (Twitter) posts using Playwright."""
     

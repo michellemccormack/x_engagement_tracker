@@ -7,4 +7,5 @@ python-dotenv
 openai
 gspread
 oauth2client
+aiohttp
 
