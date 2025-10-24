@@ -10,39 +10,60 @@ from datetime import datetime, timedelta
 import statistics
 import math
 
+# 💻 Paste into Codex
+import pandas as pd
+
 def compute_comparison(results: list):
     """
-    Compute comparison between multiple handle results.
+    Compute engagement comparison between multiple Twitter users.
     
     Args:
-        results: List of engagement data for different handles
+        results: List of user data dictionaries from Apify scraping
         
     Returns:
-        Dictionary containing comparison analysis
+        DataFrame with engagement analysis and rankings
     """
     if not results:
-        return {"error": "No results to compare"}
+        return []
     
-    # Calculate total engagement for each handle
-    handle_scores = {}
-    for result in results:
-        handle = result.get('handle', 'unknown')
-        total_engagement = result.get('total_engagement', 0)
-        handle_scores[handle] = total_engagement
+    # Process results for comparison
+    comparison_data = []
     
-    # Find the best performing handle
-    best_handle = max(handle_scores.items(), key=lambda x: x[1])
+    for user_data in results:
+        username = user_data.get('username', 'unknown')
+        followers = user_data.get('followers', 0)
+        tweets = user_data.get('tweets', [])
+        
+        # Calculate engagement metrics
+        total_likes = sum(tweet.get('likes', 0) for tweet in tweets)
+        total_retweets = sum(tweet.get('retweets', 0) for tweet in tweets)
+        total_replies = sum(tweet.get('replies', 0) for tweet in tweets)
+        total_engagement = total_likes + total_retweets + total_replies
+        
+        # Calculate engagement rate: (likes + retweets + replies) / (followers × tweets) × 100
+        if followers > 0 and tweets:
+            engagement_rate = (total_engagement / (followers * len(tweets))) * 100
+        else:
+            engagement_rate = 0.0
+        
+        comparison_data.append({
+            'username': username,
+            'followers': followers,
+            'total_tweets': len(tweets),
+            'total_likes': total_likes,
+            'total_retweets': total_retweets,
+            'total_replies': total_replies,
+            'total_engagement': total_engagement,
+            'engagement_rate': round(engagement_rate, 4),
+            'avg_engagement_per_tweet': round(total_engagement / len(tweets), 2) if tweets else 0
+        })
     
-    # Calculate average engagement
-    avg_engagement = sum(handle_scores.values()) / len(handle_scores)
+    # Create DataFrame and add rankings
+    df = pd.DataFrame(comparison_data)
+    df["rank"] = df["engagement_rate"].rank(ascending=False, method='dense')
+    df = df.sort_values('engagement_rate', ascending=False)
     
-    return {
-        'best_performing_handle': best_handle[0],
-        'best_score': best_handle[1],
-        'average_engagement': avg_engagement,
-        'handle_rankings': sorted(handle_scores.items(), key=lambda x: x[1], reverse=True),
-        'total_handles_compared': len(results)
-    }
+    return df.to_dict(orient="records")
 
 class EngagementCalculator:
     """Calculator for X engagement metrics and comparisons."""
