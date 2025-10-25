@@ -111,29 +111,41 @@ class RapidAPIClient:
             
             data = response.json()
             
-            # Transform to match expected format
+            # Transform to match expected format - handle different response structures
+            tweets = []
+            
+            # Try different response formats
             if data.get("success", False):
                 tweets_data = data.get("data", [])
-                tweets = []
+            elif "data" in data:
+                tweets_data = data.get("data", [])
+            elif isinstance(data, list):
+                tweets_data = data
+            else:
+                tweets_data = []
+            
+            for tweet in tweets_data:
+                # Handle different field names for engagement metrics
+                likes = tweet.get("like_count", tweet.get("likes", tweet.get("favorite_count", 0)))
+                retweets = tweet.get("retweet_count", tweet.get("retweets", tweet.get("retweet_count", 0)))
+                replies = tweet.get("reply_count", tweet.get("replies", tweet.get("reply_count", 0)))
                 
-                for tweet in tweets_data:
-                    tweets.append({
-                        "id": tweet.get("id"),
-                        "text": tweet.get("text", ""),
-                        "created_at": tweet.get("created_at"),
-                        "public_metrics": {
-                            "like_count": tweet.get("like_count", 0),
-                            "retweet_count": tweet.get("retweet_count", 0),
-                            "reply_count": tweet.get("reply_count", 0),
-                            "quote_count": tweet.get("quote_count", 0)
-                        },
-                        "author_id": tweet.get("author_id"),
-                        "conversation_id": tweet.get("conversation_id"),
-                        "referenced_tweets": tweet.get("referenced_tweets", [])
-                    })
-                
-                return tweets
-            return []
+                tweets.append({
+                    "id": tweet.get("id"),
+                    "text": tweet.get("text", tweet.get("content", "")),
+                    "created_at": tweet.get("created_at"),
+                    "public_metrics": {
+                        "like_count": likes,
+                        "retweet_count": retweets,
+                        "reply_count": replies,
+                        "quote_count": tweet.get("quote_count", 0)
+                    },
+                    "author_id": tweet.get("author_id"),
+                    "conversation_id": tweet.get("conversation_id"),
+                    "referenced_tweets": tweet.get("referenced_tweets", [])
+                })
+            
+            return tweets
             
         except Exception as e:
             print(f"Error fetching tweets for {username}: {e}")
