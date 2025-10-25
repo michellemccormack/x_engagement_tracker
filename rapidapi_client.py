@@ -9,7 +9,7 @@ class RapidAPIClient:
     
     def __init__(self):
         self.api_key = os.getenv("RAPIDAPI_KEY")
-        self.host = os.getenv("RAPIDAPI_HOST", "twitter-api-v2.p.rapidapi.com")
+        self.host = os.getenv("RAPIDAPI_HOST", "twitter-x-scraper-api.p.rapidapi.com")
         self.base_url = f"https://{self.host}"
         self.headers = {
             "X-RapidAPI-Key": self.api_key,
