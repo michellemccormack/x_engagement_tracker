@@ -65,25 +65,20 @@ class RapidAPIClient:
             data = response.json()
             print(f"Parsed JSON: {data}")
             
-            # Handle different response formats
-            if data.get("success", False):
-                profile_data = data.get("data", {})
-            elif "data" in data:
-                profile_data = data.get("data", {})
-            else:
-                profile_data = data
-                
+            # Handle the actual Twitter X Scraper API response format
+            legacy = data.get("legacy", {})
+            
             return {
-                "id": profile_data.get("id"),
-                "username": profile_data.get("username"),
-                "name": profile_data.get("name"),
-                "followers_count": profile_data.get("followers_count", 0),
-                "following_count": profile_data.get("following_count", 0),
-                "tweet_count": profile_data.get("tweet_count", 0),
-                "verified": profile_data.get("verified", False),
-                "profile_image_url": profile_data.get("profile_image_url"),
-                "description": profile_data.get("description", ""),
-                "created_at": profile_data.get("created_at")
+                "id": data.get("rest_id"),
+                "username": data.get("legacy", {}).get("screen_name", ""),
+                "name": legacy.get("name", ""),
+                "followers_count": legacy.get("followers_count", 0),
+                "following_count": legacy.get("friends_count", 0),
+                "tweet_count": legacy.get("statuses_count", 0),
+                "verified": legacy.get("verified", False),
+                "profile_image_url": legacy.get("profile_image_url_https", ""),
+                "description": legacy.get("description", ""),
+                "created_at": legacy.get("created_at")
             }
             
         except Exception as e:
@@ -111,38 +106,26 @@ class RapidAPIClient:
             
             data = response.json()
             
-            # Transform to match expected format - handle different response structures
+            # Handle the actual Twitter X Scraper API response format
             tweets = []
-            
-            # Try different response formats
-            if data.get("success", False):
-                tweets_data = data.get("data", [])
-            elif "data" in data:
-                tweets_data = data.get("data", [])
-            elif isinstance(data, list):
-                tweets_data = data
-            else:
-                tweets_data = []
+            tweets_data = data.get("tweets", [])
             
             for tweet in tweets_data:
-                # Handle different field names for engagement metrics
-                likes = tweet.get("like_count", tweet.get("likes", tweet.get("favorite_count", 0)))
-                retweets = tweet.get("retweet_count", tweet.get("retweets", tweet.get("retweet_count", 0)))
-                replies = tweet.get("reply_count", tweet.get("replies", tweet.get("reply_count", 0)))
+                legacy = tweet.get("legacy", {})
                 
                 tweets.append({
-                    "id": tweet.get("id"),
-                    "text": tweet.get("text", tweet.get("content", "")),
-                    "created_at": tweet.get("created_at"),
+                    "id": legacy.get("id_str"),
+                    "text": legacy.get("full_text", ""),
+                    "created_at": legacy.get("created_at"),
                     "public_metrics": {
-                        "like_count": likes,
-                        "retweet_count": retweets,
-                        "reply_count": replies,
-                        "quote_count": tweet.get("quote_count", 0)
+                        "like_count": legacy.get("favorite_count", 0),
+                        "retweet_count": legacy.get("retweet_count", 0),
+                        "reply_count": legacy.get("reply_count", 0),
+                        "quote_count": legacy.get("quote_count", 0)
                     },
-                    "author_id": tweet.get("author_id"),
-                    "conversation_id": tweet.get("conversation_id"),
-                    "referenced_tweets": tweet.get("referenced_tweets", [])
+                    "author_id": legacy.get("user_id_str"),
+                    "conversation_id": legacy.get("conversation_id_str"),
+                    "referenced_tweets": []
                 })
             
             return tweets
