@@ -23,7 +23,7 @@ class RapidAPIClient:
         return bool(self.api_key and self.api_key != "your_rapidapi_key_here")
     
     async def get_user_profile(self, username: str) -> Optional[Dict[str, Any]]:
-        """Get user profile information with realistic fake data"""
+        """Get user profile information"""
         if not self.is_configured():
             return None
             
@@ -31,29 +31,47 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Generate realistic fake data based on username
-            hash_val = hash(username) % 1000000
-            followers = 1000 + (hash_val % 50000)
+            # Try the correct RapidAPI format
+            url = f"{self.base_url}/getProfile"
+            params = {"handle": username}
             
-            return {
-                "id": f"user_{hash_val}",
-                "username": username,
-                "name": username.title(),
-                "followers_count": followers,
-                "following_count": 500 + (hash_val % 2000),
-                "tweet_count": 100 + (hash_val % 1000),
-                "verified": hash_val % 3 == 0,  # 33% chance
-                "profile_image_url": f"https://pbs.twimg.com/profile_images/{hash_val}/profile.jpg",
-                "description": f"Realistic profile for {username}",
-                "created_at": "2020-01-01T00:00:00Z"
-            }
+            print(f"DEBUG: Calling getProfile with handle={username}")
+            response = requests.get(url, headers=self.headers, params=params, timeout=30)
+            print(f"DEBUG: getProfile response status: {response.status_code}")
+            print(f"DEBUG: getProfile response: {response.text[:500]}")
+            
+            if response.status_code != 200:
+                print(f"ERROR: getProfile failed with status {response.status_code}")
+                return None
+            
+            data = response.json()
+            print(f"DEBUG: getProfile parsed JSON: {data}")
+            
+            # Parse the actual response
+            if data.get("success"):
+                legacy = data.get("legacy", {})
+                return {
+                    "id": data.get("rest_id"),
+                    "username": legacy.get("screen_name", username),
+                    "name": legacy.get("name", username.title()),
+                    "followers_count": legacy.get("followers_count", 0),
+                    "following_count": legacy.get("friends_count", 0),
+                    "tweet_count": legacy.get("statuses_count", 0),
+                    "verified": legacy.get("verified", False),
+                    "profile_image_url": legacy.get("profile_image_url_https", ""),
+                    "description": legacy.get("description", ""),
+                    "created_at": legacy.get("created_at")
+                }
+            else:
+                print(f"ERROR: API returned success=false")
+                return None
             
         except Exception as e:
             print(f"ERROR: Failed to fetch user profile for {username}: {e}")
             return None
     
     async def get_user_tweets(self, username: str, limit: int = 25) -> List[Dict[str, Any]]:
-        """Get user's recent tweets with realistic fake data"""
+        """Get user's recent tweets"""
         if not self.is_configured():
             return []
             
@@ -61,28 +79,44 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Generate realistic fake tweets based on username
-            hash_val = hash(username) % 1000000
-            tweets = []
+            # Try the correct RapidAPI format
+            url = f"{self.base_url}/getUserTweets"
+            params = {
+                "handle": username,
+                "count": min(limit, 100)
+            }
             
-            for i in range(min(limit, 25)):
-                tweet_hash = hash(f"{username}_{i}") % 1000000
-                likes = tweet_hash % 1000
-                retweets = tweet_hash % 100
-                replies = tweet_hash % 50
-                
+            print(f"DEBUG: Calling getUserTweets with handle={username}, count={min(limit, 100)}")
+            response = requests.get(url, headers=self.headers, params=params, timeout=30)
+            print(f"DEBUG: getUserTweets response status: {response.status_code}")
+            print(f"DEBUG: getUserTweets response: {response.text[:500]}")
+            
+            if response.status_code != 200:
+                print(f"ERROR: getUserTweets failed with status {response.status_code}")
+                return []
+            
+            data = response.json()
+            print(f"DEBUG: getUserTweets parsed JSON: {data}")
+            
+            # Parse the actual response
+            tweets = []
+            tweets_data = data.get("tweets", [])
+            print(f"DEBUG: Found {len(tweets_data)} tweets")
+            
+            for tweet in tweets_data:
+                legacy = tweet.get("legacy", {})
                 tweets.append({
-                    "id": f"tweet_{tweet_hash}",
-                    "text": f"Sample tweet {i+1} from {username} - this is realistic fake data for demonstration purposes.",
-                    "created_at": f"2024-10-{20+i:02d}T12:00:00Z",
+                    "id": legacy.get("id_str"),
+                    "text": legacy.get("full_text", ""),
+                    "created_at": legacy.get("created_at"),
                     "public_metrics": {
-                        "like_count": likes,
-                        "retweet_count": retweets,
-                        "reply_count": replies,
-                        "quote_count": tweet_hash % 20
+                        "like_count": legacy.get("favorite_count", 0),
+                        "retweet_count": legacy.get("retweet_count", 0),
+                        "reply_count": legacy.get("reply_count", 0),
+                        "quote_count": legacy.get("quote_count", 0)
                     },
-                    "author_id": f"user_{hash_val}",
-                    "conversation_id": f"conv_{tweet_hash}",
+                    "author_id": legacy.get("user_id_str"),
+                    "conversation_id": legacy.get("conversation_id_str"),
                     "referenced_tweets": []
                 })
             
