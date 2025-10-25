@@ -33,27 +33,36 @@ class RapidAPIClient:
             url = f"{self.base_url}/user/profile"
             params = {"username": username}
             
+            print(f"Making request to: {url} with params: {params}")
             response = requests.get(url, headers=self.headers, params=params, timeout=30)
+            print(f"Response status: {response.status_code}")
+            print(f"Response content: {response.text[:500]}")
+            
             response.raise_for_status()
             
             data = response.json()
+            print(f"Parsed JSON: {data}")
             
-            # Transform to match expected format
+            # Handle different response formats
             if data.get("success", False):
                 profile_data = data.get("data", {})
-                return {
-                    "id": profile_data.get("id"),
-                    "username": profile_data.get("username"),
-                    "name": profile_data.get("name"),
-                    "followers_count": profile_data.get("followers_count", 0),
-                    "following_count": profile_data.get("following_count", 0),
-                    "tweet_count": profile_data.get("tweet_count", 0),
-                    "verified": profile_data.get("verified", False),
-                    "profile_image_url": profile_data.get("profile_image_url"),
-                    "description": profile_data.get("description", ""),
-                    "created_at": profile_data.get("created_at")
-                }
-            return None
+            elif "data" in data:
+                profile_data = data.get("data", {})
+            else:
+                profile_data = data
+                
+            return {
+                "id": profile_data.get("id"),
+                "username": profile_data.get("username"),
+                "name": profile_data.get("name"),
+                "followers_count": profile_data.get("followers_count", 0),
+                "following_count": profile_data.get("following_count", 0),
+                "tweet_count": profile_data.get("tweet_count", 0),
+                "verified": profile_data.get("verified", False),
+                "profile_image_url": profile_data.get("profile_image_url"),
+                "description": profile_data.get("description", ""),
+                "created_at": profile_data.get("created_at")
+            }
             
         except Exception as e:
             print(f"Error fetching user profile for {username}: {e}")
