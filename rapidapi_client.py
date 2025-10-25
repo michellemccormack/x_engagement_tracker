@@ -82,7 +82,9 @@ class RapidAPIClient:
             }
             
         except Exception as e:
-            print(f"Error fetching user profile for {username}: {e}")
+            print(f"ERROR: Failed to fetch user profile for {username}: {e}")
+            import traceback
+            print(f"ERROR: Profile traceback: {traceback.format_exc()}")
             return None
     
     async def get_user_tweets(self, username: str, limit: int = 25) -> List[Dict[str, Any]]:
@@ -97,18 +99,23 @@ class RapidAPIClient:
             # Use the correct Twitter X Scraper API endpoint
             url = f"{self.base_url}/getUserTweets"
             params = {
-                "username": username,
+                "handle": username,  # Use 'handle' as per RapidAPI playground
                 "count": min(limit, 100)  # API limit
             }
             
+            print(f"DEBUG: Calling getUserTweets with handle={username}, count={min(limit, 100)}")
             response = requests.get(url, headers=self.headers, params=params, timeout=30)
+            print(f"DEBUG: getUserTweets response status: {response.status_code}")
+            print(f"DEBUG: getUserTweets response: {response.text[:500]}")
             response.raise_for_status()
             
             data = response.json()
+            print(f"DEBUG: getUserTweets parsed JSON: {data}")
             
             # Handle the actual Twitter X Scraper API response format
             tweets = []
             tweets_data = data.get("tweets", [])
+            print(f"DEBUG: Found {len(tweets_data)} tweets")
             
             for tweet in tweets_data:
                 legacy = tweet.get("legacy", {})
@@ -131,7 +138,7 @@ class RapidAPIClient:
             return tweets
             
         except Exception as e:
-            print(f"Error fetching tweets for {username}: {e}")
+            print(f"ERROR: Failed to fetch tweets for {username}: {e}")
             return []
     
     async def get_user_stats(self, username: str) -> Optional[Dict[str, Any]]:
@@ -187,7 +194,10 @@ class RapidAPIClient:
     
     async def compare_handles(self, handles: List[str]) -> Dict[str, Any]:
         """Compare multiple handles and return results"""
+        print(f"DEBUG: compare_handles called with handles: {handles}")
+        
         if not self.is_configured():
+            print("DEBUG: RapidAPI not configured")
             return {
                 "success": False,
                 "error": "RapidAPI credentials not configured"
@@ -196,12 +206,19 @@ class RapidAPIClient:
         try:
             # Get stats for all handles
             results = []
-            for handle in handles:
+            for i, handle in enumerate(handles):
+                print(f"DEBUG: Processing handle {i+1}/{len(handles)}: {handle}")
                 stats = await self.get_user_stats(handle)
                 if stats:
+                    print(f"DEBUG: Successfully got stats for {handle}: {stats}")
                     results.append(stats)
+                else:
+                    print(f"DEBUG: Failed to get stats for {handle}")
+            
+            print(f"DEBUG: Total results collected: {len(results)}")
             
             if not results:
+                print("DEBUG: No valid results found")
                 return {
                     "success": False,
                     "error": "No valid handles found"
@@ -209,6 +226,7 @@ class RapidAPIClient:
             
             # Find winner (highest engagement rate)
             winner = max(results, key=lambda x: x.get("engagementRate", 0))
+            print(f"DEBUG: Winner determined: {winner.get('handle')} with {winner.get('engagementRate')}% engagement rate")
             
             return {
                 "success": True,
@@ -220,7 +238,9 @@ class RapidAPIClient:
             }
             
         except Exception as e:
-            print(f"Error comparing handles: {e}")
+            print(f"ERROR: Exception in compare_handles: {e}")
+            import traceback
+            print(f"ERROR: Traceback: {traceback.format_exc()}")
             return {
                 "success": False,
                 "error": str(e)
