@@ -94,9 +94,12 @@ async def compare_engagement(request: dict):
         clean_handles = [h.replace('@', '').strip() for h in handles]
         
         # Scrape engagement data using RapidAPI
+        print(f"DEBUG: Calling compare_handles with: {clean_handles}")
         engagement_data = await rapidapi_client.compare_handles(clean_handles)
+        print(f"DEBUG: compare_handles returned: {engagement_data}")
         
         if not engagement_data.get('success'):
+            print(f"DEBUG: API call failed with error: {engagement_data.get('error')}")
             raise HTTPException(status_code=500, detail=engagement_data.get('error', 'Failed to fetch data'))
         
         return engagement_data
