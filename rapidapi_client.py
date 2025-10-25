@@ -30,7 +30,9 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
+            # Based on the RapidAPI screenshot, use correct endpoint format
             url = f"{self.base_url}/user/profile"
+            # Try different parameter names that XScraper might expect
             params = {"username": username}
             
             print(f"Making request to: {url} with params: {params}")
@@ -86,10 +88,11 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
+            # Based on the RapidAPI screenshot, use correct endpoint format
             url = f"{self.base_url}/user/tweets"
             params = {
                 "username": username,
-                "limit": min(limit, 100)  # API limit
+                "count": min(limit, 100)  # API limit - try 'count' instead of 'limit'
             }
             
             response = requests.get(url, headers=self.headers, params=params, timeout=30)
