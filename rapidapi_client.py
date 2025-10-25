@@ -30,24 +30,35 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Based on the RapidAPI screenshot, use correct endpoint format
-            url = f"{self.base_url}/user/profile"
-            # Try different parameter names that XScraper might expect
-            params = {"username": username}
+            # Try multiple XScraper user profile endpoints
+            endpoints_to_try = [
+                f"{self.base_url}/user/profile",
+                f"{self.base_url}/profile", 
+                f"{self.base_url}/user",
+                f"{self.base_url}/users/{username}"
+            ]
             
-            print(f"Making request to: {url} with params: {params}")
-            response = requests.get(url, headers=self.headers, params=params, timeout=30)
-            print(f"Response status: {response.status_code}")
-            print(f"Response content: {response.text[:500]}")
+            response = None
+            for url in endpoints_to_try:
+                print(f"Trying endpoint: {url}")
+                if "/users/" in url:
+                    response = requests.get(url, headers=self.headers, timeout=30)
+                else:
+                    params = {"username": username}
+                    response = requests.get(url, headers=self.headers, params=params, timeout=30)
+                
+                print(f"Response status: {response.status_code}")
+                print(f"Response content: {response.text[:500]}")
+                
+                if response.status_code == 200:
+                    print(f"SUCCESS with endpoint: {url}")
+                    break
+                else:
+                    print(f"Failed with endpoint: {url}")
             
-            # Try alternative endpoint if the first one fails
-            if response.status_code == 404:
-                print("Trying alternative endpoint...")
-                url = f"{self.base_url}/profile"
-                params = {"username": username}
-                response = requests.get(url, headers=self.headers, params=params, timeout=30)
-                print(f"Alternative response status: {response.status_code}")
-                print(f"Alternative response content: {response.text[:500]}")
+            if not response or response.status_code != 200:
+                print("All endpoints failed")
+                return None
             
             response.raise_for_status()
             
