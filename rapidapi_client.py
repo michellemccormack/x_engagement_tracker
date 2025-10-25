@@ -9,7 +9,7 @@ class RapidAPIClient:
     
     def __init__(self):
         self.api_key = os.getenv("RAPIDAPI_KEY")
-        self.host = os.getenv("RAPIDAPI_HOST", "xscraper.p.rapidapi.com")
+        self.host = os.getenv("RAPIDAPI_HOST", "twitter-api-v2.p.rapidapi.com")
         self.base_url = f"https://{self.host}"
         self.headers = {
             "X-RapidAPI-Key": self.api_key,
@@ -30,12 +30,12 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Try multiple XScraper user profile endpoints
+            # Try Twitter API v2 endpoints for user data
             endpoints_to_try = [
+                f"{self.base_url}/users/by/username/{username}",
+                f"{self.base_url}/users/{username}",
                 f"{self.base_url}/user/profile",
-                f"{self.base_url}/profile", 
-                f"{self.base_url}/user",
-                f"{self.base_url}/users/{username}"
+                f"{self.base_url}/profile"
             ]
             
             response = None
