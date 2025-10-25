@@ -44,7 +44,7 @@ class RapidAPIClient:
                 if "/users/" in url:
                     response = requests.get(url, headers=self.headers, timeout=30)
                 else:
-                    params = {"username": username}
+                    params = {"handle": username}  # Use 'handle' as per RapidAPI playground
                     response = requests.get(url, headers=self.headers, params=params, timeout=30)
                 
                 print(f"Response status: {response.status_code}")
@@ -208,7 +208,7 @@ class RapidAPIClient:
                 }
             
             # Find winner (highest engagement rate)
-            winner = max(results, key=lambda x: x.get("engagement_rate", 0))
+            winner = max(results, key=lambda x: x.get("engagementRate", 0))
             
             return {
                 "success": True,
