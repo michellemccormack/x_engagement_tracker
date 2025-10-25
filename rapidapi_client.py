@@ -97,7 +97,7 @@ class RapidAPIClient:
             username = username.lstrip('@')
             
             # Use the correct Twitter X Scraper API endpoint
-            url = f"{self.base_url}/tweets"
+            url = f"{self.base_url}/getUserTweets"
             params = {
                 "handle": username,  # Use 'handle' as per RapidAPI playground
                 "count": min(limit, 100)  # API limit
