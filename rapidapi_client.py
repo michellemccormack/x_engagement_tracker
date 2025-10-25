@@ -30,12 +30,12 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Try Twitter API v2 endpoints for user data
+            # Try the correct Twitter X Scraper API endpoints
             endpoints_to_try = [
-                f"{self.base_url}/users/by/username/{username}",
-                f"{self.base_url}/users/{username}",
+                f"{self.base_url}/getProfile",
+                f"{self.base_url}/profile",
                 f"{self.base_url}/user/profile",
-                f"{self.base_url}/profile"
+                f"{self.base_url}/users/{username}"
             ]
             
             response = None
@@ -99,11 +99,11 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Based on the RapidAPI screenshot, use correct endpoint format
-            url = f"{self.base_url}/user/tweets"
+            # Use the correct Twitter X Scraper API endpoint
+            url = f"{self.base_url}/getUserTweets"
             params = {
                 "username": username,
-                "count": min(limit, 100)  # API limit - try 'count' instead of 'limit'
+                "count": min(limit, 100)  # API limit
             }
             
             response = requests.get(url, headers=self.headers, params=params, timeout=30)
