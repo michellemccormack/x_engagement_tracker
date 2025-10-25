@@ -3,5 +3,5 @@ fastapi
 uvicorn
 python-dotenv
 aiohttp
-apify-client
+requests
 

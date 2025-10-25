@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from apify_scraper import ApifyTwitterScraper
+from rapidapi_client import RapidAPIClient
 from dotenv import load_dotenv
 import os
 
@@ -22,15 +22,19 @@ app.add_middleware(
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Initialize Apify scraper
-scraper = None
+# Initialize RapidAPI client
+rapidapi_client = None
 try:
-    scraper = ApifyTwitterScraper()
-    print("Apify scraper initialized successfully")
+    rapidapi_client = RapidAPIClient()
+    if rapidapi_client.is_configured():
+        print("RapidAPI client initialized successfully")
+    else:
+        print("RapidAPI credentials not configured - app will run in demo mode")
+        rapidapi_client = None
 except Exception as e:
-    print(f"Warning: Apify scraper failed to initialize: {e}")
-    print("App will continue without Apify functionality")
-    scraper = None
+    print(f"Warning: RapidAPI client failed to initialize: {e}")
+    print("App will continue in demo mode")
+    rapidapi_client = None
 
 @app.post("/api/compare-engagement")
 async def compare_engagement(request: dict):
@@ -45,8 +49,8 @@ async def compare_engagement(request: dict):
     Returns:
         Engagement comparison results with winner
     """
-    if not scraper:
-        # Return demo data when Apify is not configured
+    if not rapidapi_client:
+        # Return demo data when RapidAPI is not configured
         handles = request.get('handles', [])
         return {
             "success": True,
@@ -69,7 +73,7 @@ async def compare_engagement(request: dict):
                 ],
                 "winner": None,
                 "timestamp": "2025-10-24T19:30:00Z",
-                "demo_note": "🎯 DEMO MODE - This is simulated data for demonstration purposes. To get real Twitter data, configure your Apify API token."
+                "demo_note": "🎯 DEMO MODE - This is simulated data for demonstration purposes. To get real Twitter data, configure your RapidAPI credentials."
             }
         }
     
@@ -89,16 +93,13 @@ async def compare_engagement(request: dict):
         # Clean handles (remove @ if included)
         clean_handles = [h.replace('@', '').strip() for h in handles]
         
-        # Scrape engagement data
-        engagement_data = await scraper.scrape_twitter_engagement(clean_handles)
+        # Scrape engagement data using RapidAPI
+        engagement_data = await rapidapi_client.compare_handles(clean_handles)
         
-        if engagement_data.get('error'):
-            raise HTTPException(status_code=500, detail=engagement_data['error'])
+        if not engagement_data.get('success'):
+            raise HTTPException(status_code=500, detail=engagement_data.get('error', 'Failed to fetch data'))
         
-        return {
-            "success": True,
-            "data": engagement_data
-        }
+        return engagement_data
         
     except HTTPException:
         raise
@@ -117,8 +118,8 @@ async def compare_get(handles: str):
     Returns:
         Comparison results with engagement rates and rankings
     """
-    if not scraper:
-        raise HTTPException(status_code=500, detail="Apify API token not configured")
+    if not rapidapi_client:
+        raise HTTPException(status_code=500, detail="RapidAPI credentials not configured")
     
     # Parse handles
     handle_list = [h.strip().lstrip("@") for h in handles.split(",") if h.strip()]
@@ -129,16 +130,13 @@ async def compare_get(handles: str):
         raise HTTPException(status_code=400, detail="Maximum 3 handles allowed")
     
     try:
-        # Scrape engagement data
-        engagement_data = await scraper.scrape_twitter_engagement(handle_list)
+        # Scrape engagement data using RapidAPI
+        engagement_data = await rapidapi_client.compare_handles(handle_list)
         
-        if engagement_data.get('error'):
-            raise HTTPException(status_code=500, detail=engagement_data['error'])
+        if not engagement_data.get('success'):
+            raise HTTPException(status_code=500, detail=engagement_data.get('error', 'Failed to fetch data'))
         
-        return {
-            "success": True,
-            "data": engagement_data
-        }
+        return engagement_data
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Scraping failed: {str(e)}")
