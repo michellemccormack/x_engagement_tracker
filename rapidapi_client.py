@@ -9,7 +9,7 @@ class RapidAPIClient:
     
     def __init__(self):
         self.api_key = os.getenv("RAPIDAPI_KEY")
-        self.host = os.getenv("RAPIDAPI_HOST", "twitter-api-v2.p.rapidapi.com")
+        self.host = os.getenv("RAPIDAPI_HOST", "twitter-x-scraper-api.p.rapidapi.com")
         self.base_url = f"https://{self.host}"
         self.headers = {
             "X-RapidAPI-Key": self.api_key,
@@ -30,34 +30,17 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Try the correct Twitter X Scraper API endpoints
-            endpoints_to_try = [
-                f"{self.base_url}/getProfile",
-                f"{self.base_url}/profile",
-                f"{self.base_url}/user/profile",
-                f"{self.base_url}/users/{username}"
-            ]
+            # Use the correct endpoint from RapidAPI documentation
+            url = f"{self.base_url}/getProfile"
             
-            response = None
-            for url in endpoints_to_try:
-                print(f"Trying endpoint: {url}")
-                if "/users/" in url:
-                    response = requests.get(url, headers=self.headers, timeout=30)
-                else:
-                    params = {"handle": username}  # Use 'handle' as per RapidAPI playground
-                    response = requests.get(url, headers=self.headers, params=params, timeout=30)
-                
-                print(f"Response status: {response.status_code}")
-                print(f"Response content: {response.text[:500]}")
-                
-                if response.status_code == 200:
-                    print(f"SUCCESS with endpoint: {url}")
-                    break
-                else:
-                    print(f"Failed with endpoint: {url}")
+            params = {"handle": username}  # Use 'handle' as per RapidAPI playground
+            response = requests.get(url, headers=self.headers, params=params, timeout=30)
             
-            if not response or response.status_code != 200:
-                print("All endpoints failed")
+            print(f"Response status: {response.status_code}")
+            print(f"Response content: {response.text[:500]}")
+            
+            if response.status_code != 200:
+                print(f"Failed with endpoint: {url}")
                 return None
             
             response.raise_for_status()
@@ -96,8 +79,8 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Use Twitter API v2 endpoint
-            url = f"{self.base_url}/users/{username}/tweets"
+            # Use the correct endpoint from RapidAPI documentation
+            url = f"{self.base_url}/getUserTweets"
             params = {
                 "handle": username,  # Use 'handle' as per RapidAPI playground
                 "count": min(limit, 100)  # API limit
