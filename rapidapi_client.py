@@ -30,17 +30,36 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Use the correct endpoint from RapidAPI documentation
-            url = f"{self.base_url}/getProfile"
+            # Try ALL possible endpoint combinations
+            endpoints_to_try = [
+                f"{self.base_url}/getProfile",
+                f"{self.base_url}/profile", 
+                f"{self.base_url}/user/profile",
+                f"{self.base_url}/users/{username}",
+                f"{self.base_url}/user/{username}",
+                f"{self.base_url}/profile/{username}"
+            ]
             
-            params = {"handle": username}  # Use 'handle' as per RapidAPI playground
-            response = requests.get(url, headers=self.headers, params=params, timeout=30)
+            response = None
+            for url in endpoints_to_try:
+                print(f"Trying profile endpoint: {url}")
+                if "/users/" in url or "/user/" in url or "/profile/" in url:
+                    response = requests.get(url, headers=self.headers, timeout=30)
+                else:
+                    params = {"handle": username}
+                    response = requests.get(url, headers=self.headers, params=params, timeout=30)
+                
+                print(f"Profile response status: {response.status_code}")
+                print(f"Profile response content: {response.text[:200]}")
+                
+                if response.status_code == 200:
+                    print(f"SUCCESS with profile endpoint: {url}")
+                    break
+                else:
+                    print(f"Failed with profile endpoint: {url}")
             
-            print(f"Response status: {response.status_code}")
-            print(f"Response content: {response.text[:500]}")
-            
-            if response.status_code != 200:
-                print(f"Failed with endpoint: {url}")
+            if not response or response.status_code != 200:
+                print("All profile endpoints failed")
                 return None
             
             response.raise_for_status()
@@ -79,12 +98,40 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Use the correct endpoint from RapidAPI documentation
-            url = f"{self.base_url}/getUserTweets"
-            params = {
-                "handle": username,  # Use 'handle' as per RapidAPI playground
-                "count": min(limit, 100)  # API limit
-            }
+            # Try ALL possible tweet endpoint combinations
+            tweet_endpoints_to_try = [
+                f"{self.base_url}/getUserTweets",
+                f"{self.base_url}/userTweets",
+                f"{self.base_url}/tweets",
+                f"{self.base_url}/user/tweets",
+                f"{self.base_url}/users/{username}/tweets",
+                f"{self.base_url}/tweets/{username}"
+            ]
+            
+            response = None
+            for url in tweet_endpoints_to_try:
+                print(f"Trying tweet endpoint: {url}")
+                if "/users/" in url or "/tweets/" in url:
+                    response = requests.get(url, headers=self.headers, timeout=30)
+                else:
+                    params = {
+                        "handle": username,
+                        "count": min(limit, 100)
+                    }
+                    response = requests.get(url, headers=self.headers, params=params, timeout=30)
+                
+                print(f"Tweet response status: {response.status_code}")
+                print(f"Tweet response content: {response.text[:200]}")
+                
+                if response.status_code == 200:
+                    print(f"SUCCESS with tweet endpoint: {url}")
+                    break
+                else:
+                    print(f"Failed with tweet endpoint: {url}")
+            
+            if not response or response.status_code != 200:
+                print("All tweet endpoints failed")
+                return []
             
             print(f"DEBUG: Calling getUserTweets with handle={username}, count={min(limit, 100)}")
             response = requests.get(url, headers=self.headers, params=params, timeout=30)
