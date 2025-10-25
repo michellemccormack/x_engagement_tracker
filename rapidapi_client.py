@@ -38,6 +38,15 @@ class RapidAPIClient:
             print(f"Response status: {response.status_code}")
             print(f"Response content: {response.text[:500]}")
             
+            # Try alternative endpoint if the first one fails
+            if response.status_code == 404:
+                print("Trying alternative endpoint...")
+                url = f"{self.base_url}/profile"
+                params = {"username": username}
+                response = requests.get(url, headers=self.headers, params=params, timeout=30)
+                print(f"Alternative response status: {response.status_code}")
+                print(f"Alternative response content: {response.text[:500]}")
+            
             response.raise_for_status()
             
             data = response.json()

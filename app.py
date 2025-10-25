@@ -49,32 +49,33 @@ async def compare_engagement(request: dict):
     Returns:
         Engagement comparison results with winner
     """
-    # TEMPORARILY FORCE DEMO MODE - REMOVE THIS LATER
-    handles = request.get('handles', [])
-    return {
-        "success": True,
-        "data": {
-            "results": [
-                {
-                    "handle": handle,
-                    "name": handle.title(),
-                    "followers": 1000000 + (hash(handle) % 10000000),
-                    "tweetsAnalyzed": 25,
-                    "totalLikes": 50000 + (hash(handle) % 100000),
-                    "totalRetweets": 5000 + (hash(handle) % 10000),
-                    "totalReplies": 2500 + (hash(handle) % 5000),
-                    "totalEngagements": 57500 + (hash(handle) % 115000),
-                    "engagementRate": round(0.05 + (hash(handle) % 10) / 100, 2),
-                    "avgLikesPerTweet": 2000 + (hash(handle) % 4000),
-                    "avgRetweetsPerTweet": 200 + (hash(handle) % 400),
-                    "avgRepliesPerTweet": 100 + (hash(handle) % 200)
-                } for handle in handles
-            ],
-            "winner": None,
-            "timestamp": "2025-10-24T19:30:00Z",
-            "demo_note": "🎯 DEMO MODE - This is simulated data for demonstration purposes. To get real Twitter data, configure your RapidAPI credentials."
+    if not rapidapi_client:
+        # Return demo data when RapidAPI is not configured
+        handles = request.get('handles', [])
+        return {
+            "success": True,
+            "data": {
+                "results": [
+                    {
+                        "handle": handle,
+                        "name": handle.title(),
+                        "followers": 1000000 + (hash(handle) % 10000000),
+                        "tweetsAnalyzed": 25,
+                        "totalLikes": 50000 + (hash(handle) % 100000),
+                        "totalRetweets": 5000 + (hash(handle) % 10000),
+                        "totalReplies": 2500 + (hash(handle) % 5000),
+                        "totalEngagements": 57500 + (hash(handle) % 115000),
+                        "engagementRate": round(0.05 + (hash(handle) % 10) / 100, 2),
+                        "avgLikesPerTweet": 2000 + (hash(handle) % 4000),
+                        "avgRetweetsPerTweet": 200 + (hash(handle) % 400),
+                        "avgRepliesPerTweet": 100 + (hash(handle) % 200)
+                    } for handle in handles
+                ],
+                "winner": None,
+                "timestamp": "2025-10-24T19:30:00Z",
+                "demo_note": "🎯 DEMO MODE - This is simulated data for demonstration purposes. To get real Twitter data, configure your RapidAPI credentials."
+            }
         }
-    }
     
     try:
         handles = request.get('handles', [])
