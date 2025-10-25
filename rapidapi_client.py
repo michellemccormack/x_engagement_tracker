@@ -9,7 +9,7 @@ class RapidAPIClient:
     
     def __init__(self):
         self.api_key = os.getenv("RAPIDAPI_KEY")
-        self.host = os.getenv("RAPIDAPI_HOST", "twitter-x-scraper-api.p.rapidapi.com")
+        self.host = os.getenv("RAPIDAPI_HOST", "twitter-api-v2.p.rapidapi.com")
         self.base_url = f"https://{self.host}"
         self.headers = {
             "X-RapidAPI-Key": self.api_key,
@@ -96,31 +96,8 @@ class RapidAPIClient:
             # Remove @ if present
             username = username.lstrip('@')
             
-            # Try multiple possible endpoints for tweets
-            endpoints_to_try = [
-                f"{self.base_url}/getUserTweets",
-                f"{self.base_url}/userTweets", 
-                f"{self.base_url}/tweets",
-                f"{self.base_url}/user/tweets",
-                f"{self.base_url}/getTweets"
-            ]
-            
-            response = None
-            for url in endpoints_to_try:
-                print(f"Trying tweet endpoint: {url}")
-                response = requests.get(url, headers=self.headers, params=params, timeout=30)
-                print(f"Tweet endpoint response status: {response.status_code}")
-                if response.status_code == 200:
-                    print(f"SUCCESS with tweet endpoint: {url}")
-                    break
-                else:
-                    print(f"Failed with tweet endpoint: {url}")
-            
-            if not response or response.status_code != 200:
-                print("All tweet endpoints failed")
-                return []
-            
-            url = endpoints_to_try[0]  # Keep original for logging
+            # Use Twitter API v2 endpoint
+            url = f"{self.base_url}/users/{username}/tweets"
             params = {
                 "handle": username,  # Use 'handle' as per RapidAPI playground
                 "count": min(limit, 100)  # API limit
